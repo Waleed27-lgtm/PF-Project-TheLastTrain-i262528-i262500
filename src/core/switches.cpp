@@ -6,14 +6,14 @@
 
 
 // Door lock mechanics, lifts, and cabinet verification without structures
-bool unlockFloor3Dor(const char inventory[MAX_INVENTORY_CAPACITY], int inventoryCount) {
+bool unlockFloor3Door(const char inventory[MAX_INVENTORY_CAPACITY], int inventoryCount) {
     return hasItem(inventory, inventoryCount, ENT_MASTER_KEY);
 }
 
 bool installFuseControlPanel(char inventory[MAX_INVENTORY_CAPACITY], int& inventoryCount, bool objectives[NUM_OBJECTIVES], 
       int& score) {
     if (!hasItem(inventory, inventoryCount, ENT_FUSE))// it returns false if  player dont have a fuse in its inventory 
-     retun false;
+     return false;
 
     removeItem(inventory, inventoryCount, ENT_FUSE);//it will remove the fuse from the inventory because we know tht we have a fuse and we used it so now we dont need it.
 
@@ -27,7 +27,7 @@ bool canUseLift1(int fromFloor, int toFloor) {
      if(fromFloor >= 1 && fromFloor <= 2 && toFloor >= 1 && toFloor <= 2)
      return true;
      else
-     return true;
+     return false;
 }
 
 // Lift 2 serves floors 2, 4 and 5. It needs power (fuse installed) or an emergency trip.
