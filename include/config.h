@@ -43,6 +43,7 @@ const int BONUS_ENERGY_PACK         = 25;
 const int BONUS_EMERGENCY_TOOLKIT   = 15;
 const int BONUS_OBSERVATION_TOKEN   = 15;
 
+
 // --- Score Awards ---
 const int SCORE_KEY_COLLECT         = 10;
 const int SCORE_CLUE_FOUND          = 10;

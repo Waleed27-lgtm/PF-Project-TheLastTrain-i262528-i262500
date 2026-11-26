@@ -19,5 +19,5 @@ bool validateStartingRoom(int startFloor, int startRoom,
                           const char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1]);
 
 const char* getEntityName(char entitySymbol);
-
+const char* getObjectiveName(int index);
 #endif // LEVEL_H
