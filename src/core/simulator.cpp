@@ -340,3 +340,155 @@ bool handleUnlockCabinetCommand(const char* code, int currentFloor, int currentR
 }
 
 
+
+// The game ends when you run out of energy or time, or when the train is prepared
+// This function is called at the start of each iteration of the main loop
+// IF any of these conditions is true, the main loop will exit and the game will end
+bool checkEndConditions(int energy, int time, const bool objectives[NUM_OBJECTIVES]) {
+    return energy <= 0 || time <= 0 || objectives[OBJ_TRAIN_PREPARED];
+}
+
+
+
+void runSimulation(int& playerFloor, int& playerRoom,
+                   int& energy, int& time, int& score,
+                   char inventory[MAX_INVENTORY_CAPACITY], int& inventoryCount,
+                   bool objectives[NUM_OBJECTIVES], int& emergencyTripsLeft,
+                   char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1],
+                   char roomEntities[NUM_FLOORS][ROOMS_PER_FLOOR][MAX_ENTITIES_PER_ROOM],
+                   int entityCounts[NUM_FLOORS][ROOMS_PER_FLOOR]) {
+
+    // 1. the player picks the starting room 
+    while (!validateStartingRoom(playerFloor, playerRoom, horizontalConn)) {//checks if entered room is valid
+        cout << "Choose your starting room (floor 1-" << NUM_FLOORS << ", room 1-" 
+        << ROOMS_PER_FLOOR << "), for example  1 2 : ";
+        if (!(cin >> playerFloor >> playerRoom)) {//if this condition false itwill triggger if block
+            if (cin.eof())//if user presses ctrl+d or ctrl+z(input completly ends)
+                return;
+            cin.clear();//clears the error state of cin
+            playerFloor = playerRoom = 0;//resets the floor and room to 0 which is invalid so the loop runs again
+        }
+        string rest;
+        getline(cin, rest);    // throw away the rest of the line
+    }
+    printHelp();//if invalid is correct, help commands printed
+
+    // 2. play
+    bool quit = false;
+    char line[MAX_LINE_LEN];//will store the user input
+
+    //the main loop of the game
+    while (!quit && !checkEndConditions(energy, time, objectives)) {
+        int& count = entityCounts[playerFloor - 1][playerRoom - 1];
+        renderDashboard(playerFloor, playerRoom, energy, time, score, inventory, inventoryCount, emergencyTripsLeft);
+        renderRoomDetails(playerFloor, playerRoom, roomEntities, count);
+        showExits(playerFloor, playerRoom, horizontalConn);
+
+        cout << "\n> ";
+        if (!cin.getline(line, MAX_LINE_LEN)) //if accidently somethig alse typed , break
+            break;
+
+        char cmd[32] = "";//space created to hold the action word
+        int used = 0;
+        sscanf(line, "%31s%n", cmd, &used);//first word into cmd (eg move) and rest into used
+        for (int i = 0; cmd[i] != '\0'; i++) cmd[i] = (char)tolower((unsigned char)cmd[i]);//converts to lowercase if user enter uooercaee
+        char* arg = line + used;
+        trimWhitespace(arg);//deleats any extra space aroung arg
+
+        if (stringEquals(cmd, "move")) {
+            int f = 0, r = 0;           
+            if (sscanf(arg, "%d %d", &f, &r) != 2) 
+                cout << "Use:  move <floor> <room>\n";//if you didnt type 2 numbers
+            else handleMoveCommand(f, r, playerFloor, playerRoom, energy, time, horizontalConn,
+                                   inventory, inventoryCount, emergencyTripsLeft, objectives[OBJ_LIFT2_ACTIVE]);
+        }
+        else if (stringEquals(cmd, "inspect")) {
+            //calling function to look if there is a clue currently in the rooom
+            handleInspectCommand(playerFloor, playerRoom, energy, time, roomEntities, count, objectives, score);
+        }
+        else if (stringEquals(cmd, "collect")) {
+            if (arg[0] == '\0') //if you typed nothuig
+                cout << "Use:  collect <symbol>\n";
+            else if (handleCollectCommand(arg[0], playerFloor, playerRoom, energy, time, score, roomEntities,
+                                          count, inventory, inventoryCount, objectives) &&
+                     arg[0] == ENT_EMERGENCY_CARD) {
+                emergencyTripsLeft += EMERGENCY_TRIPS_PER_CARD;
+                cout << "The card gives you " << EMERGENCY_TRIPS_PER_CARD << " emergency trips in Lift 2.\n";
+            }
+        }
+        else if (stringEquals(cmd, "use")) {
+            if (arg[0] == '\0') 
+                cout << "Use:  use <symbol>\n";
+            else handleUseCommand(arg[0], playerFloor, playerRoom, energy, time, score,
+                                  inventory, inventoryCount, objectives);
+        }
+        else if (stringEquals(cmd, "unlock")) {
+            handleUnlockCabinetCommand(arg, playerFloor, playerRoom, objectives, score, roomEntities, count);
+        }
+        else if (stringEquals(cmd, "goals")) {//displays goals
+            renderObjectivesChecklist(objectives);
+        }
+        else if (stringEquals(cmd, "map")) {//displays current map
+            renderAsciiBuilding(playerFloor, playerRoom);
+        }
+        else if (stringEquals(cmd, "help")) {//list of  commands
+            printHelp();
+        }
+        else if (stringEquals(cmd, "save")) {
+            bool ok = saveGameStateToFile(SAVE_FILE, playerFloor, playerRoom, energy, time, score, inventory,
+                                          inventoryCount, objectives, emergencyTripsLeft, roomEntities, entityCounts);
+            if (ok) {
+                cout << "Game saved.\n";
+            }
+            else {
+                cout << "Could not save the game.\n";
+            }
+        }
+        else if (stringEquals(cmd, "load")) {
+            //this function reads saved program back from file
+            bool ok = loadGameStateFromFile(SAVE_FILE, playerFloor, playerRoom, energy, time, score, inventory,
+                                            inventoryCount, objectives, emergencyTripsLeft, roomEntities, entityCounts);
+            if (ok) {
+                cout << "Game loaded.\n";
+            } 
+            else {
+                cout << "Could not load a saved game.\n";
+            }
+        }
+        else if (stringEquals(cmd, "quit")) {
+            quit = true;
+        }
+        else if (cmd[0] != '\0') {
+            cout << "Unknown command. Type  help.\n";
+        }
+    }
+
+    // 3. result
+    bool victory = objectives[OBJ_TRAIN_PREPARED];
+    if (victory) {
+    printHeader("VICTORY");
+    }
+    else {
+    printHeader("MISSION FAILED");
+    }
+    if (victory) {
+        applyScoreDelta(score, SCORE_MISSION_VICTORY);
+        objectives[OBJ_MISSION_WON] = true;
+        cout << "You boarded the last train. Well done!\n";
+    }
+    else {
+        objectives[OBJ_MISSION_FAILED] = true;
+        if (energy <= 0) 
+            cout << "You ran out of energy.\n";
+        else if (time <= 0) 
+            cout << "You ran out of time. The train left without you.\n";
+        else 
+            cout << "You gave up.\n";
+    }
+    renderObjectivesChecklist(objectives);
+    cout << "\nFinal score: " << score << "\n";
+    writeGameSummaryReport(SUMMARY_FILE, score, energy, time, objectives, victory);
+    cout << "Summary saved to " << SUMMARY_FILE << "\n";
+}
+
+
