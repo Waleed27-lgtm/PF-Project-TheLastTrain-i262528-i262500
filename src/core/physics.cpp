@@ -19,7 +19,7 @@ bool isDirectlyConnected(int fromF, int fromR, int toF, int toR,
         return false;
         }
          else if(fromR < toR){ //it is checking that the user is in left room or right room 
-            int leftroom = fromR;
+            leftroom = fromR;
          }
          else
               leftroom = toR;
@@ -97,11 +97,12 @@ bool canTraverse(int targetFloor, int targetRoom, char connType,
     if (connType == CONN_LOCKED_DOOR){
     return unlockFloor3Door(inventory, inventoryCount);
     }
-    if (connType == CONN_LIFT2){
-        return (lift2Operational && hasItem(inventory, inventoryCount, ENT_LIFT_PASS)) ||emergencyTripsLeft > 0;
-    return true;    
-    }                  
-}
+    if (connType == CONN_LIFT2) {
+        return (lift2Operational && hasItem(inventory, inventoryCount, ENT_LIFT_PASS)) || emergencyTripsLeft > 0;
+    }
+    return true;
+}                  
+
  bool removeItem(char inventory[MAX_INVENTORY_CAPACITY], int& inventoryCount, char itemSymbol) {
     for (int i = 0; i < inventoryCount; i++) {//this function is used to remove tje items from the inventory.
         if (inventory[i] == itemSymbol) {// it matches which inventory item  we want to remove

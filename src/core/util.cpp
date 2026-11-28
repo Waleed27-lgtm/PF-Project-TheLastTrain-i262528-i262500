@@ -46,7 +46,7 @@ bool stringEquals(const char* a, const char* b) {
     }
     return a[start] == b[start];
 } 
-void printheader(const char* title)
+void printHeader(const char* title)
 {
     cout << "####"<<endl;
     if(title != nullptr)
@@ -55,7 +55,7 @@ void printheader(const char* title)
     cout << "####" << endl;
 }
 
-void clearscreen()
+void clearScreen()
 {
     cout << endl<<endl;
 }

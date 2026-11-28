@@ -56,4 +56,7 @@ const int SCORE_LIFT_PASS           = 20;
 const int SCORE_PREPARE_TRAIN       = 100;
 const int SCORE_MISSION_VICTORY     = 100;
 
+const int PLATFORM_FLOOR = 5;           //floor where train train platfrom is located
+const int PLATFORM_ROOM = 2;            //room number of train platform f5-r2
+const int EMERGENCY_TRIPS_PER_CARD = 2; //number of lift 2 trips per emergency card
 #endif // CONFIG_H

@@ -1,0 +1,21 @@
+THE LAST TRAIN - GAME SUMMARY
+Result: MISSION FAILED
+Score: 0
+Energy left: 100
+Time left: 50
+
+Objectives:
+  [ ] Master Key collected
+  [ ] Clue digit 4 found
+  [ ] Clue digit 2 found
+  [ ] Clue digit 7 found
+  [ ] Cabinet unlocked (427)
+  [ ] Train Key collected
+  [ ] Fuse collected
+  [ ] Fuse installed
+  [ ] Lift Pass collected
+  [ ] Lift 2 powered
+  [ ] Passenger rescued
+  [ ] Cat Carrier collected
+  [ ] Cat secured
+  [ ] Train prepared
